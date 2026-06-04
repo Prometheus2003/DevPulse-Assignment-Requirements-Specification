@@ -2,6 +2,8 @@
 
 A REST API built with Node.js, Express, TypeScript, and PostgreSQL for managing users and issues with role-based access control.
 
+Live URL:https://assignment-2-pi-virid.vercel.app
+
 ---
 
 ## 🚀 Features
@@ -12,6 +14,8 @@ A REST API built with Node.js, Express, TypeScript, and PostgreSQL for managing 
 - Create, read, update, delete issues
 - Contributors can manage own issues
 - Maintainers can manage all issues
+- Secure password hashing using bcrypt
+- PostgreSQL database integration (Neon DB)
 
 ---
 

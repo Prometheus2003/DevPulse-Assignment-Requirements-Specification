@@ -31,7 +31,4 @@ app.use("/api/auth", authRoute)
 app.use(globalErrorHandler)
 
 
-app.listen(config.port, () => {
-    console.log(`Example app listening on port ${config.port}`)
-})
 export default app
