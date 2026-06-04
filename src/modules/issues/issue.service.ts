@@ -41,10 +41,18 @@ const getIssueByIdFromDB = async (id: string) => {
     return result.rows[0];
 }
 const updateIssueStatusInDB = async (id: string, payload: IUpdateIssue) => {
-    const { title, description, type } = payload;
+    const { title, description, type, status } = payload;
     const result = await pool.query(`
-        UPDATE issues SET title= $1, description = $2, type = $3, updated_at = NOW() WHERE id = $4 RETURNING *
-    `, [title, description, type, id])
+        UPDATE issues SET title = COALESCE($1, title),
+            description = COALESCE($2, description),
+            type = COALESCE($3, type),
+            status = COALESCE($4, status),
+            updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+        `,
+        [title, description, type, status, id]
+    );
     return result.rows[0];
 }
 const deleteIssueFromDB = async (id: string) => {

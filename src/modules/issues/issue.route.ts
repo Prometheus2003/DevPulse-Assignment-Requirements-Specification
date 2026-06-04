@@ -1,10 +1,12 @@
 import { Router } from "express"
 import { issueController } from "./issue.controller"
+import auth from "../../middleware/auth.middleware";
+import role from "../../middleware/role.middleware";
 
 const router = Router()
-router.post("/", issueController.createIssue)
-router.get("/", issueController.getAllIssues)
-router.get("/:id", issueController.getIssueById)
-router.put("/:id", issueController.updateIssueStatus)
-router.delete("/:id", issueController.deleteIssue)
+router.post("/", auth(), role(["contributor", "maintainer"]), issueController.createIssue)
+router.get("/", auth(), role(["contributor", "maintainer"]), issueController.getAllIssues)
+router.get("/:id", auth(), role(["contributor", "maintainer"]), issueController.getIssueById)
+router.put("/:id", auth(), role(["contributor", "maintainer"]), issueController.updateIssueStatus)
+router.delete("/:id", auth(), role(["maintainer"]), issueController.deleteIssue)
 export const issueRoute = router

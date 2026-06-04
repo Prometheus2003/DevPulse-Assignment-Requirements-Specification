@@ -90,26 +90,58 @@ export const getIssueById = async (req: Request, res: Response) => {
     }
 }
 export const updateIssueStatus = async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const rawId = req.params.id;
+    if (!rawId || Array.isArray(rawId)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid issue id",
+        });
+    }
+    const id = rawId;
+    const user = req.user;
     try {
-        const result = await issueService.updateIssueStatusInDB(id as string, req.body);
+        const issue = await issueService.getIssueByIdFromDB(id);
+
+        if (!issue) {
+            return res.status(404).json({
+                success: false,
+                message: "Issue not found",
+            });
+        }
+        if (
+            user?.role === "contributor" &&
+            issue.reporter_id !== user.id
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "You can only update your own issue",
+            });
+        }
+        const result = await issueService.updateIssueStatusInDB(id, req.body);
+
         res.status(200).json({
             success: true,
             message: "Issue updated successfully",
             data: result,
-        })
+        });
+
     } catch (error: any) {
         res.status(500).json({
             success: false,
             message: error.message,
-            error: error,
-        })
+        });
     }
-}
+};
 export const deleteIssue = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         const result = await issueService.deleteIssueFromDB(id as string);
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "Issue not found",
+            });
+        }
         res.status(200).json({
             success: true,
             message: "Issue deleted successfully",
