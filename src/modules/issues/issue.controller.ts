@@ -4,7 +4,8 @@ import { userService } from "../users/user.service";
 
 export const createIssue = async (req: Request, res: Response) => {
     try {
-        const issue = await issueService.createIssueIntoDB({ ...req.body });
+        const user = (req as any).user
+        const issue = await issueService.createIssueIntoDB({ ...req.body, reporter_id: user.id });
         res.status(201).json({
             success: true,
             message: "Issue created successfully",
@@ -98,7 +99,8 @@ export const updateIssueStatus = async (req: Request, res: Response) => {
         });
     }
     const id = rawId;
-    const user = req.user;
+    const user = (req as any).user;
+    const userId = user.id;
     try {
         const issue = await issueService.getIssueByIdFromDB(id);
 
@@ -117,7 +119,7 @@ export const updateIssueStatus = async (req: Request, res: Response) => {
                 message: "You can only update your own issue",
             });
         }
-        const result = await issueService.updateIssueStatusInDB(id, req.body);
+        const result = await issueService.updateIssueStatusInDB(id, userId, req.body);
 
         res.status(200).json({
             success: true,

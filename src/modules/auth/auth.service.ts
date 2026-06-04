@@ -1,6 +1,6 @@
 import { pool } from "../../db";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 const loginUserIntoDB = async (payload: {
     email: string,
@@ -26,8 +26,10 @@ const loginUserIntoDB = async (payload: {
         role: user.role,
     }
     const accessToken = jwt.sign(jwtpayload, config.secret as string, { expiresIn: "1d" })
+
+    const refreshToken = jwt.sign(jwtpayload, config.refresh_secret as string, { expiresIn: "1d" })
     return {
-        token: accessToken,
+        token: accessToken, refreshToken,
         user: {
             id: user.id,
             name: user.name,
@@ -38,8 +40,46 @@ const loginUserIntoDB = async (payload: {
         }
     }
 }
+const generateFreshToken = async (token: string) => {
+    if (!token) {
+        throw new Error("Unauthorized");
+    }
+
+    const decoded = jwt.verify(
+        token as string,
+        config.refresh_secret as string,
+    ) as JwtPayload;
+
+    const userData = await pool.query(
+        `
+     SELECT * FROM users WHERE email=$1   
+        `,
+        [decoded.email],
+    );
+
+    const user = userData.rows[0];
+
+    if (userData.rows.length === 0) {
+        throw new Error("User not found!!");
+    }
+
+    const jwtpayload = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    };
+
+    const accessToken = jwt.sign(jwtpayload, config.secret as string, {
+        expiresIn: "1d",
+    });
+    return {
+        token: accessToken,
+    }
+}
 const signupUserIntoDB = async (payload: any) => {
-    const { name, email, password, role } = payload;
+    const { name, email, password } = payload;
+    const role = "contributor";
     const existingUser = await pool.query(`
         SELECT * FROM users WHERE email = $1
     `, [email])
@@ -55,5 +95,6 @@ const signupUserIntoDB = async (payload: any) => {
 }
 export const authService = {
     loginUserIntoDB,
-    signupUserIntoDB
+    signupUserIntoDB,
+    generateFreshToken
 }
