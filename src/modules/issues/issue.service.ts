@@ -10,11 +10,29 @@ const createIssueIntoDB = async (payload: IIssue) => {
 
     return result.rows[0];
 }
-const getAllIssuesFromDB = async () => {
-    const result = await pool.query(`
-            SELECT * FROM issues
-        `)
-    return result;
+const getAllIssuesFromDB = async (filters: any) => {
+    const { type, status, sort = "newest" } = filters;
+    let query = `SELECT * FROM issues`;
+    const conditions = [];
+    const values = [];
+    if (type) {
+        conditions.push(`type = $${values.length}`);
+        values.push(type);
+    }
+    if (status) {
+        conditions.push(`status = $${values.length}`);
+        values.push(status);
+    }
+    if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+    }
+    if (sort === "oldest") {
+        query += ` ORDER BY created_at ASC`;
+    } else {
+        query += ` ORDER BY created_at DESC`;
+    }
+    const result = await pool.query(query, values);
+    return result.rows;
 }
 const getIssueByIdFromDB = async (id: string) => {
     const result = await pool.query(`

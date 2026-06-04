@@ -6,9 +6,9 @@ const createUser = async (req: Request, res: Response) => {
     //const { name, email, password, age } = req.body
     try {
         const result = await userService.createUserIntoDB(req.body)
-        res.status(200).json({
+        res.status(201).json({
             message: "User created successfully",
-            data: result.rows[0],
+            data: result[0],
         })
     } catch (error: any) {
         res.status(500).json({
@@ -22,7 +22,7 @@ const getAllUsers = async (req: Request, res: Response) => {
         const result = await userService.getAllUsersFromDB();
         res.status(200).json({
             message: "Users retrieved successfully",
-            data: result.rows,
+            data: result,
         })
     } catch (error: any) {
         res.status(500).json({
@@ -34,15 +34,15 @@ const getAllUsers = async (req: Request, res: Response) => {
 const getUserById = async (req: Request, res: Response) => {
     const { id } = req.params
     try {
-        const result = await userService.getUserByIdFromDB(id as string);
-        if (result.rows.length === 0) {
+        const result = await userService.getUsersByIdsFromDB([Number(id)]);
+        if (result.length === 0) {
             return res.status(404).json({
                 message: "User not found",
             })
         }
         res.status(200).json({
             message: "User retrieved successfully",
-            data: result.rows[0],
+            data: result[0],
         })
     } catch (error: any) {
         res.status(500).json({
@@ -67,7 +67,7 @@ const updateUser = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             message: "User updated successfully!",
-            data: result.rows[0],
+            data: result[0],
         });
     } catch (error: any) {
         res.status(500).json({
@@ -77,10 +77,32 @@ const updateUser = async (req: Request, res: Response) => {
         });
     }
 };
-
+const deleteUser = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const result = await userService.deleteUserFromDB(id as string);
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "User deleted successfully!",
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            error: error,
+        });
+    }
+};
 export const userController = {
     createUser,
     getAllUsers,
     getUserById,
     updateUser,
+    deleteUser,
 }
