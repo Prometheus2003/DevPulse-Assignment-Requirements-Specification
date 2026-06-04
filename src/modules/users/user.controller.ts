@@ -8,7 +8,7 @@ const createUser = async (req: Request, res: Response) => {
         const result = await userService.createUserIntoDB(req.body)
         res.status(201).json({
             message: "User created successfully",
-            data: result[0],
+            data: result,
         })
     } catch (error: any) {
         res.status(500).json({
