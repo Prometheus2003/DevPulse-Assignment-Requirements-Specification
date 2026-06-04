@@ -29,16 +29,13 @@ export const getAllIssues = async (req: Request, res: Response) => {
         });
         const formatted = issues.map((issue: any) => {
             const { reporter_id, created_at, updated_at, ...rest } = issue;
-
             return {
                 id: rest.id,
                 title: rest.title,
                 description: rest.description,
                 type: rest.type,
                 status: rest.status,
-
                 reporter: userMap[reporter_id] || null,
-
                 created_at,
                 updated_at,
             };
